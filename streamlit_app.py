@@ -8,7 +8,7 @@ with open("probing_data.json", 'r') as fp:
     probing_data = json.load(fp)
 
 
-openai.api_key = "sk-proj-8Hj0AxHhdPFQ75QbA7avT3BlbkFJalSAvYvn4CAIV7VQeim8y"
+openai.api_key = api_key
 
 def so_probe1(q_and_a, probing_data, temperature=0.7):
     so_styles = probing_data["styles"]
@@ -41,6 +41,7 @@ if language == "English":
 elif language == "German":
     lang_key = "de"
 
+api_key = st.text_input("Enter your OpenAI API Key:", type="password")
 question = st.text_input("Enter the survey question:")
 answer = st.text_input("Enter the respondent's answer:")
 
