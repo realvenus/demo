@@ -7,6 +7,18 @@ from random import randint
 with open("probing_data.json", 'r') as fp:
     probing_data = json.load(fp)
 
+st.title("LLM Probing Demo")
+
+language = st.sidebar.selectbox("Select Language", ["English", "German"])
+
+if language == "English":
+    lang_key = "en"
+elif language == "German":
+    lang_key = "de"
+
+api_key = st.text_input("Enter your OpenAI API Key:", type="password")
+question = st.text_input("Enter the survey question:")
+answer = st.text_input("Enter the respondent's answer:")
 
 openai.api_key = api_key
 
@@ -30,20 +42,6 @@ def so_probe1(q_and_a, probing_data, temperature=0.7):
         probe = f"Error: {e}"
 
     return probe
-
-
-st.title("LLM Probing Demo")
-
-language = st.sidebar.selectbox("Select Language", ["English", "German"])
-
-if language == "English":
-    lang_key = "en"
-elif language == "German":
-    lang_key = "de"
-
-api_key = st.text_input("Enter your OpenAI API Key:", type="password")
-question = st.text_input("Enter the survey question:")
-answer = st.text_input("Enter the respondent's answer:")
 
 if st.button("Generate Probe"):
     if question and answer:
