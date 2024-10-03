@@ -1,56 +1,54 @@
+import openai
 import streamlit as st
-from openai import OpenAI
+import json
+from random import randint
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+with open("probing_data.json", 'r') as fp:
+    probing_data = json.load(fp)
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+openai.api_key = "sk-proj-8Hj0AxHhdPFQ75QbA7avT3BlbkFJalSAvYvn4CAIV7VQeim8y"
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+def so_probe1(q_and_a, probing_data, temperature=0.7):
+    so_styles = probing_data["styles"]
+    style = so_styles[randint(1, 4) - 1]
+    user_prompt = """Please write a probe for the following: """ + q_and_a + """ style: """ + style
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+    user_dict = {"role": "user", "content": user_prompt}
+    messages = [{"role": "system", "content": probing_data["system_prompt"]}]
+    messages.append(user_dict)
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
+    try:
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
+            messages=messages,
+            temperature=temperature,
         )
+        probe = response.choices[0].message["content"]
+    except Exception as e:
+        probe = f"Error: {e}"
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    return probe
+
+
+st.title("LLM Probing Demo")
+
+language = st.sidebar.selectbox("Select Language", ["English", "German"])
+
+if language == "English":
+    lang_key = "en"
+elif language == "German":
+    lang_key = "de"
+
+question = st.text_input("Enter the survey question:")
+answer = st.text_input("Enter the respondent's answer:")
+
+if st.button("Generate Probe"):
+    if question and answer:
+        q_and_a = f"question: \"{question}\" answer: \"{answer}\""
+        probe = so_probe1(q_and_a, probing_data[lang_key])
+        st.subheader("Generated Probe:")
+        st.write(probe)
+    else:
+        st.error("Please enter both a question and an answer.")
