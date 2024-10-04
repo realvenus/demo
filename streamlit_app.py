@@ -32,12 +32,12 @@ def so_probe1(q_and_a, probing_data, temperature):
     messages.append(user_dict)
 
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.chat_completions.create(
             model="gpt-3.5-turbo",
             messages=messages,
             temperature=temperature,
         )
-        probe = response.choices[0].message["content"]
+        probe = response.choices[0]['message']['content']
     except Exception as e:
         probe = f"Error: {e}"
 
