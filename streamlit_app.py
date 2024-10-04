@@ -37,7 +37,7 @@ def so_probe1(q_and_a, probing_data, temperature):
             messages=messages,
             temperature=temperature,
         )
-        probe = response.choices[0].['message']['content']
+        probe = response.choices[0].message['content']
     except Exception as e:
         probe = f"Error: {e}"
 
