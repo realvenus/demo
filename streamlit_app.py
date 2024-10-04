@@ -32,7 +32,7 @@ def so_probe1(q_and_a, probing_data, temperature):
     messages.append(user_dict)
 
     try:
-        response = openai.chat_completions.create(
+        response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messages,
             temperature=temperature,
